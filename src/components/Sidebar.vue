@@ -7,7 +7,7 @@
       <router-link to="/trash/2" title="回收站"><i class="iconfont icon-trash"></i></router-link> 
     </div> 
     <div class="logout" @click="onLogout">
-      <i class="iconfont icon-logout"></i>
+      <i class="iconfont icon-logout" @click="logout"></i>
     </div>
   </div>
 </template>
@@ -15,12 +15,22 @@
 
 <script setup>
 import Avatar from './Avatar.vue'
+import Auth from '../apis/auth'
+
+// 点击退出登录
+const logout = () =>{
+  Auth.logout()
+  .then(data =>{
+    console.log(data);
+  })
+}
+
 
 </script>
 
 <script>
-      export default {
-        name: 'Sidebar'
+  export default {
+    name: 'Sidebar'
   }
 </script>
 

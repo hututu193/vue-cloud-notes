@@ -11,8 +11,14 @@
             <transition name="slide">
               <div :class="{show: isShowRegister}" class="register">
                 <!-- 输入框 -->
-                <input type="text" v-model="register.username" placeholder="用户名">
-                <input type="password" v-model="register.password" @keyup.enter="onRegister" placeholder="密码">
+                <input type="text" 
+                v-model="register.username" 
+               
+                placeholder="用户名">
+
+                <input type="password" 
+                v-model="register.password" 
+                @keyup.enter="onRegister" placeholder="密码">
                 
                 <p :class="{error: register.isError}"> {{register.notice}}</p>
                 <div class="button" @click="onRegister">创建账号</div>
@@ -24,7 +30,10 @@
             <transition name="slide">
               <div v-bind:class="{show: isShowLogin}" class="login">
                 <!-- 输入框 -->
-                <input type="text" v-model="login.username" placeholder="输入用户名">
+                <input type="text" 
+                v-model="login.username" 
+                @input="onLogin"
+                placeholder="输入用户名">
                 <input type="password" v-model="login.password" @keyup.enter="onLogin"  placeholder="密码">
                 
                 <p v-bind:class="{error: login.isError}"> {{login.notice}}</p>
@@ -43,6 +52,11 @@
 
 <script setup>
   import {reactive, ref} from 'vue'
+  import Auth from '../apis/auth'
+
+  Auth.getInfo()
+    .then(data => console.log(data))
+
   const isShowLogin = ref(true)
   const isShowRegister = ref(false)
   const login = reactive({
@@ -83,8 +97,13 @@
     register.isError = false
     register.notice = ''
 
-     console.log(`start register..., username: ${register.username} , password: ${register.password}`)
-  }
+    console.log(`start register..., username: ${register.username} , password: ${register.password}`)
+    Auth.register({
+      username: register.username, 
+      password: register.password
+    }).then(data => console.log(data))
+  
+    }
 
   const onLogin = () =>{
     if(!/^[\w\u4e00-\u9fa5]{3,15}$/.test(login.username)){
@@ -100,7 +119,14 @@
         login.isError = false
         login.notice = ''
         console.log(`start login..., username: ${login.username} , password: ${login.password}`)      
-  }
+  
+        Auth.login({
+          username: login.username, 
+          password: login.password
+        }).then(data =>{
+          console.log(data);
+        })
+      }
   
 
 </script>
