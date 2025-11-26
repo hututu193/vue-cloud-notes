@@ -1,12 +1,11 @@
 <template>
-   <div id="app">
-    
-    
+   <div class="app-container"> <!-- 改为 class 而不是 id -->
     <Sidebar/>
-    <router-view/>  
+    <main class="main-content">
+      <router-view/>  
+    </main>
    </div>
  </template>
-
 
 <script>
 import Sidebar from './components/Sidebar.vue';
@@ -23,7 +22,7 @@ export default {
   margin: 0;
   padding: 0;
 }
-html, body, #app {
+html, body {
   height: 100%;
 }
 body {
@@ -50,8 +49,22 @@ ul, li{
   cursor: pointer;
   display: inline-block;
 }
-#app {
+
+/* 修改这里：使用 .app-container 而不是 #app */
+.app-container {
   display: flex;
   align-items: stretch;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  background: white;
+  margin: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow: auto;
 }
 </style>

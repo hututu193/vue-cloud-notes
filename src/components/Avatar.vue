@@ -1,14 +1,30 @@
 <template>
-  <span :title="user.username"> {{slug}}</span>
+  <span :title="username"> {{slug}}</span>
 </template>
 
 <script setup>
-    const user = {
-        username: 'Valley'
-        }
-    const slug = 'V'
- 
-  
+import { computed, onMounted } from 'vue'
+import Auth from '@/apis/auth';
+import { useUserStore } from '@/stores/user';
+
+const userStore = useUserStore()
+
+const username = computed(() => userStore.username)
+const slug = computed(() => {
+  return username.value.charAt(0)
+})
+
+onMounted(async () => {
+  try {
+    const userInfo = await Auth.getInfo()
+    if (userInfo && userInfo.isLogin) {
+      // 使用 store 的方法来设置用户名，而不是直接赋值
+      userStore.setUsername(userInfo.data.username)
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+})
 </script>
 
 <script>

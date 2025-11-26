@@ -1,16 +1,23 @@
 import axios from "axios";
+import baseURLConfig from './config-baseURL'
 
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.baseURL = baseURLConfig.baseURL
 axios.defaults.withCredentials = true
+
+// console.log('当前环境:', process.env.NODE_ENV)
+
+// fetch('/api/auth').then(res => res.json()).then(data => {
+//     console.log('代理测试:', data)
+// })
 
 export default function request(url, type = 'GET', data = {}) {
     return new Promise((resolve, reject) => {
         let option = {
             url,
             method: type,
-            ValiditeState(status) {
-                return (status > 200 && status < 300) || status === 400
+            validateStatus(status) {
+                return (status >= 200 && status < 300) || status === 400
             }
         }
         if (type.toLowerCase() === 'get') {
@@ -31,6 +38,4 @@ export default function request(url, type = 'GET', data = {}) {
         })
     })
 }
-
-
 

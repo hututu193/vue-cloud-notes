@@ -4,58 +4,60 @@
       <div class="modal-wrapper">
         <div class="modal-container">
           <div class="main"></div>
-          
           <div class="form">
             <!-- 创建账户 -->
             <h3 @click="showRegister">创建账户</h3>
             <transition name="slide">
-              <div :class="{show: isShowRegister}" class="register">
-                <!-- 输入框 -->
+              <div v-bind:class="{show: isShowRegister}" class="register">
                 <input type="text" 
                 v-model="register.username" 
-               
-                placeholder="用户名">
+                placeholder="用户名"/>
 
                 <input type="password" 
                 v-model="register.password" 
-                @keyup.enter="onRegister" placeholder="密码">
-                
-                <p :class="{error: register.isError}"> {{register.notice}}</p>
+                @keyup.enter="onRegister" 
+                placeholder="密码"/>
+
+                <p v-bind:class="{error: register.isError}"> {{register.notice}}</p>
                 <div class="button" @click="onRegister">创建账号</div>
               </div>
             </transition>
-            
             <!-- 登录 -->
             <h3 @click="showLogin">登录</h3>
             <transition name="slide">
               <div v-bind:class="{show: isShowLogin}" class="login">
-                <!-- 输入框 -->
+                
                 <input type="text" 
                 v-model="login.username" 
-                @input="onLogin"
-                placeholder="输入用户名">
-                <input type="password" v-model="login.password" @keyup.enter="onLogin"  placeholder="密码">
-                
+                placeholder="输入用户名"/>
+                <input type="password" 
+                v-model="login.password" 
+                @keyup.enter="onLogin"  
+                placeholder="密码"/>
+
                 <p v-bind:class="{error: login.isError}"> {{login.notice}}</p>
                 <div class="button" @click="onLogin"> 登录</div>
               </div>
             </transition>
-
           </div>
         </div>
       </div>
     </div>
 
-   </div>
-  
+    </div>
+ 
 </template>
 
 <script setup>
   import {reactive, ref} from 'vue'
   import Auth from '../apis/auth'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
-  Auth.getInfo()
-    .then(data => console.log(data))
+const router = useRouter() // 在 setup 中获取 router 实例
+const userStore = useUserStore() // 使用 store
+  // Auth.getInfo()
+  //   .then(data => console.log(data))
 
   const isShowLogin = ref(true)
   const isShowRegister = ref(false)
@@ -94,16 +96,19 @@
       register.notice = '密码长度为6~16个字符'
       return
     }
-    register.isError = false
-    register.notice = ''
-
-    console.log(`start register..., username: ${register.username} , password: ${register.password}`)
+    
     Auth.register({
       username: register.username, 
       password: register.password
-    }).then(data => console.log(data))
-  
-    }
+    }).then(data => {
+      register.isError =false
+      register.notice = ''
+      router.push({path: '/notebooks'})
+    }).catch(data =>{
+      register.isError = true
+      register.notice = data.msg
+    })   
+  }
 
   const onLogin = () =>{
     if(!/^[\w\u4e00-\u9fa5]{3,15}$/.test(login.username)){
@@ -116,15 +121,21 @@
           login.notice = '密码长度为6~16个字符'
           return
         }
-        login.isError = false
-        login.notice = ''
-        console.log(`start login..., username: ${login.username} , password: ${login.password}`)      
+       
   
         Auth.login({
           username: login.username, 
           password: login.password
         }).then(data =>{
-          console.log(data);
+          login.isError = false
+          login.notice = ''
+
+          userStore.setUsername(login.username)
+          // console.log(`start login..., username: ${login.username} , password: ${login.password}`)
+          router.push({path: '/notebooks'})
+        }).catch(data =>{
+          login.isError = true
+          login.notice = data.msg
         })
       }
   
@@ -166,7 +177,7 @@
   display: flex;
   .main {
     flex: 1;
-    background: #36bc64 url(//cloud.hunger-valley.com/17-12-13/38476998.jpg-middle) center center no-repeat;
+    background: #36bc64 url(../assets/cheese.svg) center center no-repeat;
     background-size: contain;
   }
   .form {

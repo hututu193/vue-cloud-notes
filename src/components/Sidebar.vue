@@ -16,12 +16,14 @@
 <script setup>
 import Avatar from './Avatar.vue'
 import Auth from '../apis/auth'
+import { useRouter } from 'vue-router' 
+const router = useRouter() 
 
 // 点击退出登录
 const logout = () =>{
   Auth.logout()
   .then(data =>{
-    console.log(data);
+    router.push({path: '/login'})
   })
 }
 

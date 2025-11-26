@@ -13,7 +13,7 @@ export default {
     return request(URL.REGISTER, 'POST', { username, password })
   },
 
-  Login({ username, password }) {
+  login({ username, password }) {
     return request(URL.LOGIN, 'POST', { username, password })
   },
   logout() {

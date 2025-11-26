@@ -1,6 +1,6 @@
 // config-baseURL.js 
-module.exports = {
+export default {
     baseURL: process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000'
+        ? '/api'
         : 'https://note-server.hunger-valley.com'
 }
