@@ -1,12 +1,16 @@
 <template>
-  <div id="note-detail">
-    笔记本详情
+  <div id="note" class="detail">
+
+    <NoteSidebar></NoteSidebar>
+    <div class="note-detail">
+      gikjh
+    </div>
   </div>
 </template>
-
 <script setup>
 import Auth from '@/apis/auth';
 import { useRouter } from 'vue-router';
+import NoteSidebar from './NoteSidebar.vue';
 
 const router = useRouter();
 
@@ -27,8 +31,14 @@ Auth.getInfo().then(res => {
   }
 </script>
 
-<style scoped>
-h1 {
-  color: blue;
+<style lang="less">
+// @import url(../assets/css/note-detail.less);
+
+#note {
+  display: flex;
+  align-items: stretch;
+  background-color: #fff;
+  flex: 1;
 }
+
 </style>

@@ -26,12 +26,12 @@ const routes = [
         component: () => import('@/components/NotebookList.vue')
     },
     {
-        path: '/note/:noteId',
+        path: '/note',
         name: 'NoteDetail',
         component: () => import('@/components/NoteDetail.vue')
     },
     {
-        path: '/trash/:noteId',
+        path: '/trash',
         name: 'TrashDetail',
         component: () => import('@/components/TrashDetail.vue')
     },
@@ -49,3 +49,4 @@ const router = createRouter({
 })
 
 export default router
+
