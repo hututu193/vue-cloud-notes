@@ -59,6 +59,10 @@ const userStore = useUserStore() // 使用 store
   // Auth.getInfo()
   //   .then(data => console.log(data))
 
+  defineOptions({
+    name: 'Login'
+  })
+
   const isShowLogin = ref(true)
   const isShowRegister = ref(false)
   const login = reactive({
@@ -142,12 +146,6 @@ const userStore = useUserStore() // 使用 store
 
 </script>
 
- 
-<script>
-   export default {
-    name: 'Login'
-  }
-</script>
 
 <style lang="less">
 .modal-mask {

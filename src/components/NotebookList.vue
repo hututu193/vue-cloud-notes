@@ -185,7 +185,7 @@ const onDelete = async (notebook) => {
   }
 }
 
-console.log(notebooks.value);
+
 
 </script>
 

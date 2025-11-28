@@ -11,6 +11,10 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+defineOptions({
+  name: 'TrashDetail'
+})
+
 // ✅ 正确：直接在 setup 中执行，类似 Vue 2 的 created
 Auth.getInfo().then(res => {
  
@@ -24,11 +28,6 @@ Auth.getInfo().then(res => {
 
 </script>
  
-<script>
-   export default {
-  name: 'TrashDetail'
-}
-</script>
 
 <style scoped>
 h1 {

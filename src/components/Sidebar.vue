@@ -19,6 +19,10 @@ import Auth from '../apis/auth'
 import { useRouter } from 'vue-router' 
 const router = useRouter() 
 
+// defineOptions({
+//   name: 'Sidebar'
+// })
+
 // 点击退出登录
 const logout = () =>{
   Auth.logout()

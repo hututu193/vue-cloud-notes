@@ -9,6 +9,10 @@ import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore()
 
+defineOptions({
+  name: 'Avatar'
+})
+
 const username = computed(() => userStore.username)
 const slug = computed(() => {
   return username.value.charAt(0)
@@ -27,11 +31,7 @@ onMounted(async () => {
 })
 </script>
 
-<script>
-     export default {
-        name: 'Avatar'
-     }
-</script>
+
 
 <style scoped>
 span {

@@ -7,12 +7,11 @@
    </div>
  </template>
 
-<script>
+<script setup>
 import Sidebar from './components/Sidebar.vue';
-export default {
-  name: 'App',
-  components:{Sidebar}
-}
+defineOptions({
+  name: "App"
+})
 </script>
 
 <style>
@@ -61,7 +60,7 @@ ul, li{
   flex: 1;
   min-width: 0;
   background: white;
-  margin: 16px;
+  /* margin: 16px; */
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
