@@ -25,9 +25,11 @@
 
     <ul class="notes">
         <!-- 此处的key需要再次确认 -->
-        <li v-for="note in notes" 
+        <li v-for="(note, index) in notes" 
         :key="note.id">
-            <router-link :to="`/note?noteId=${note.id}&notebookId=${currentBook.id}`">
+            <router-link 
+                :to="`/note?noteId=${note.id}&notebookId=${currentBook.id}`"
+                :class="{ 'active': isNoteActive(note.id, index) }">
                 <span class="date">{{ note.updateAtFriendly }}</span>
                 <span class="title">{{ note.title }}</span>
             </router-link>
@@ -54,6 +56,13 @@ const router = useRouter()
 const notebooks = ref([])
 const notes = ref([])
 const currentBook = ref({})
+// 定义组件发出的事件
+const emit = defineEmits(['update:notes'])
+
+const updateNotesList = (newNotes) => {
+    notes.value = newNotes
+    emit('update:notes', newNotes) 
+}
 
 const getNotebooks = async () =>{
     const res = await Notebooks.getAll()
@@ -66,41 +75,50 @@ const getNotebooks = async () =>{
   if(currentBook.value.id){
     const noteRes = await Notes.getAll({notebookId: currentBook.value.id})
     notes.value = noteRes.data
+    updateNotesList(noteRes)
   }
 }
 onMounted(() =>{
     getNotebooks()
 })
 
+// 判断当前笔记是否激活
+// 如果URL中有noteId，则匹配对应的笔记；如果没有noteId，则默认第一个笔记为active
+const isNoteActive = (noteId, index) => {
+    const currentNoteId = route.query.noteId
+    if (currentNoteId) {
+        // 有选中的笔记，匹配对应的笔记
+        return currentNoteId == noteId
+    } else {
+        // 没有选中的笔记，默认第一个笔记为active
+        if (index === 0) {
+            return true
+        } else {
+            return false
+        }
+    }
+}
+
 const handleCommand = async (notebookId) => {
     if(notebookId == 'trash') {
-        // 处理回收站逻辑
         router.push({path:'/trash'})
     } else {
-        console.log('切换笔记本前:')
-        console.log('当前笔记本数量:', notebooks.value.length)
-        console.log('当前笔记数量:', notes.value.length)
-        console.log('当前笔记:', notes.value)
-
         // 找到选中的笔记本并更新 currentBook
         const selectedNotebook = notebooks.value.find(notebook => notebook.id == notebookId)
         if (selectedNotebook) {
             currentBook.value = selectedNotebook
 
-               console.log('切换到笔记本:', currentBook.value)
+               
 
             const res = await Notes.getAll({notebookId})
-
-            
-
             notes.value = res.data
+            console.log('切换到笔记本后的笔记:', notes.value)
+            updateNotesList(res.data)
         }
     }
 //   ElMessage(`click on item ${command}`)
 }
 </script>
-
-
 
 <style lang="less" >
 @import url(../assets/css/note-sidebar.less);

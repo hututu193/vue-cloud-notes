@@ -1,7 +1,7 @@
 <template>
   <div id="note" class="detail">
 
-    <NoteSidebar></NoteSidebar>
+    <NoteSidebar @update:notes="handleNotesUpdate"></NoteSidebar>
     
      <div class="note-detail">
       
@@ -35,7 +35,7 @@
 </template>
 <script setup>
 import Auth from '@/apis/auth';
-import { useRouter } from 'vue-router';
+import { onBeforeRouteUpdate, useRouter } from 'vue-router';
 import {ref} from 'vue'
 import NoteSidebar from './NoteSidebar.vue';
 
@@ -44,13 +44,25 @@ defineOptions({
   name: 'NoteDetail'
 })
 
- const currentNote = ref({
-  title : '我的笔记',
-  content : "我的笔记内容",
-  createdAtFriendly : '一天前',
-  updatedAtFriendly : '刚刚',
-  statusText:'未更新'
- })
+ const currentNote = ref({}
+//   {
+//   title : '我的笔记',
+//   content : "我的笔记内容",
+//   createdAtFriendly : '一天前',
+//   updatedAtFriendly : '刚刚',
+//   statusText:'未更新'
+//  }
+)
+const notes = ref([])
+
+const handleNotesUpdate = (newNotes) => {
+  console.log('收到的笔记', newNotes)
+  notes.value = newNotes
+  if(route.query.noteId && newNotes.length > 0){
+    const foundNote = newNotes.find(note => note.id == route.query.noteId)
+    currentNote.value = foundNote || {}
+  }
+}
 
 // ✅ 正确：直接在 setup 中执行，类似 Vue 2 的 created
 Auth.getInfo().then(res => {
@@ -61,6 +73,17 @@ Auth.getInfo().then(res => {
   console.error('检查登录状态失败:', error);
   router.push({ path: '/login' });
 });
+
+onBeforeRouteUpdate((to, from, next) => {
+
+  const foundNote = notes.value.find(note => note.id == to.query.noteId)
+  currentNote.value = foundNote || {} // 关键：确保不是 undefined
+  console.log('切换笔记:', foundNote ? foundNote.title : '未找到笔记')
+  next(); // Allow navigation
+});
+
+// 添加监听器，确保在笔记列表更新时也能正确设置当前笔记
+
 </script>
 
 
