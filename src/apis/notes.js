@@ -20,7 +20,13 @@ export default {
             // 修正排序：按更新时间降序排列（最新的在前）
             return new Date(note2.updatedAt) - new Date(note1.updatedAt)
         })
+        return res
+    },
 
+    async addNote({ notebookId }, { title = '', content = '' } = { title: '', content: '' }) {
+        const res = await request(URL.ADD.replace(':notebookId', notebookId), 'POST', { title, content })
+        res.data.createdAtFriendly = friendlyDate(res.data.createdAt)
+        res.data.updatedAtFriendly = friendlyDate(res.data.updatedAt)
         return res
     },
 
@@ -31,9 +37,5 @@ export default {
     deleteNote({ noteId }) {
         return request(URL.DELETE.replace(':noteId', noteId), 'DELETE')
     },
-
-    addNote({ notebookId }, { title = '', content = '' } = { title: '', content: '' }) {
-        return request(URL.ADD.replace(':notebookId', notebookId), 'POST', { title, content })
-    }
+    
 }
-

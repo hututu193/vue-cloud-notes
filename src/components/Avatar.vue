@@ -3,35 +3,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import Auth from '@/apis/auth';
-import { useUserStore } from '@/stores/user';
-
-const userStore = useUserStore()
+import { useUserStore } from '@/stores/modules/user'
+import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
 
 defineOptions({
   name: 'Avatar'
 })
-
-const username = computed(() => userStore.username)
-const slug = computed(() => {
-  return username.value.charAt(0)
+onMounted(()=>{
+  console.log(slug)
 })
+const userStore = useUserStore()
+const { username, slug } = storeToRefs(userStore)  
 
-onMounted(async () => {
-  try {
-    const userInfo = await Auth.getInfo()
-    if (userInfo && userInfo.isLogin) {
-      // 使用 store 的方法来设置用户名，而不是直接赋值
-      userStore.setUsername(userInfo.data.username)
-    }
-  } catch (error) {
-    console.error('获取用户信息失败:', error)
-  }
-})
 </script>
-
-
 
 <style scoped>
 span {

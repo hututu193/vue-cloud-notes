@@ -36,40 +36,39 @@
 
 <script setup>
  import Auth from '@/apis/auth';
- import Notebooks from '@/apis/notebooks'
 import { useRouter } from 'vue-router';
 import {ref, onMounted} from 'vue'
-import { friendlyDate } from '@/helpers/utils';
-
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+import { useUserStore } from '@/stores/modules/user';
+import { useNotebooksStore } from '@/stores/modules/notebook'
+import { storeToRefs } from 'pinia'
+
+const notebookStore = useNotebooksStore()
+const userStore = useUserStore()
+const { notebooks} = storeToRefs(notebookStore)
 const router = useRouter();
-const notebooks =ref([])
+
+defineOptions({
+  name: 'NotebookList'
+})
+// const notebooks =ref([])
 const loading = ref(false)
 
-const checkAuthAndGetNotebooks = async () =>{
+const loadNotebooks = async () =>{
   try {
-    const authRes = await Auth.getInfo()   
-      //如果未登录，跳转登录页
-      if(!authRes.isLogin){
-        router.push({path: '/login'})
-        return
-      }
-      //获取笔记本列表
-      loading.value = true
-      const notebookRes = await Notebooks.getAll()
-      notebooks.value = notebookRes.data || []    
+    loading.value = true
+    await notebookStore.getNotebooks()
   } catch (error) {
-    console.error('操作失败:', error);
-    router.push({ path: '/login' });
-  } finally {
-    loading.value = false;
+    console.log('获取笔记本失败', error)
+  } finally{
+    loading.value = false
   }
-} 
+}
 
 // 在组件挂载时执行
 onMounted(() => {
-  checkAuthAndGetNotebooks();
+  loadNotebooks();
 });
 
 const onCreate = async () => {
@@ -81,20 +80,8 @@ const onCreate = async () => {
       inputPattern: /^.{1,30}$/,
       inputErrorMessage: '标题不能为空',
     })
-    // 如果用户点击取消，会抛出错误，所以下面的代码不会执行
-    const res = await Notebooks.addNotebook({ title: value })
-    
-    
-
-    // 处理返回的数据
-    res.data.friendlyCreatedAt = friendlyDate(res.data.createdAt)
-    notebooks.value.unshift(res.data)
-    
-    ElMessage({
-      type: 'success',
-      message: res.msg,
-    })
-    
+  
+    notebookStore.addNotebook(value)
   } catch (error) {
     // 这里会捕获两种错误：用户取消和API调用失败
     if (error === 'cancel' || error === 'close') {
@@ -124,13 +111,8 @@ const onEdit = async (notebook) => {
     inputPattern: /^.{1,30}$/,
     inputErrorMessage: '标题不能为空，且不超过30个字符',
   })
-  title = value
-  const res = await Notebooks.updateNotebook(notebook.id, { title })
-  notebook.title = title
-  ElMessage({
-    type: 'success',
-    message: res.msg,
-  })
+  notebookStore.updateNotebook(notebook.id, value)
+ 
   } catch (error) {
     // 用户取消操作 - 静默处理，什么都不做
     if (error !== 'cancel' && error !== 'close') {
@@ -145,8 +127,6 @@ const onEdit = async (notebook) => {
 }
 
 const onDelete = async (notebook) => {
-  //  console.log('删除笔记本:', notebook);
-
  try {
   await ElMessageBox.confirm(
     '确认要删除笔记本吗', '删除笔记本',
@@ -156,16 +136,7 @@ const onDelete = async (notebook) => {
       type: 'warning',
     }
   )
-   const res = await Notebooks.deleteNotebook(notebook.id)  
-      // 正确的方式：在 notebooks.value 上操作
-      const index = notebooks.value.indexOf(notebook)
-      if (index !== -1) {
-        notebooks.value.splice(index, 1)
-        ElMessage({
-        type: 'success',
-        message: 'Delete completed',
-      })
-      }
+   notebookStore.deleteNotebook(notebook.id)
 
  } catch (error) {
    if (error === 'cancel' || error === 'close') {
@@ -184,16 +155,8 @@ const onDelete = async (notebook) => {
     }
   }
 }
-
-
-
 </script>
 
-<script>
-  export default {
-  name: 'Notebooks'
-  }
-</script>
 
 <style lang="less" scoped>
   @import url('../assets/css/notebook-list.less');

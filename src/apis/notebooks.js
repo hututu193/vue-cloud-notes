@@ -15,7 +15,8 @@ export default {
             notebook1.createdAt < notebook2.createdAt ? 1 : -1
         )
         res.data.forEach(element => {
-            element.friendlyCreatedAt = friendlyDate(element.createdAt)
+            res.data.createdAtFriendly = friendlyDate(res.data.createdAt)
+            res.data.updatedAtFriendly = friendlyDate(res.data.updatedAt)
         })
         return res
     },
@@ -28,7 +29,10 @@ export default {
         return request(URL.DELETE.replace(':id', notebookId), 'DELETE')
     },
 
-    addNotebook({ title = '' } = { title: '' }) {
-        return request(URL.ADD, 'POST', { title })
+    async addNotebook({ title = '' } = { title: '' }) {
+        const res = await request(URL.ADD, 'POST', { title })
+        res.data.createdAtFriendly = friendlyDate(res.data.createdAt)
+        res.data.updatedAtFriendly = friendlyDate(res.data.updatedAt)
+        return res
     }
 }

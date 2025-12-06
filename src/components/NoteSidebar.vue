@@ -1,6 +1,6 @@
 <template>
     <div class="note-sidebar">
-        <span class="btn add-note">添加笔记</span>
+        <span class="btn add-note" @click="onAddNote">添加笔记</span>
 
         <el-dropdown @command="handleCommand" class="notebook-title">
     <span class="el-dropdown-link">
@@ -30,7 +30,7 @@
             <router-link 
                 :to="`/note?noteId=${note.id}&notebookId=${currentBook.id}`"
                 :class="{ 'active': isNoteActive(note.id, index) }">
-                <span class="date">{{ note.updateAtFriendly }}</span>
+                <span class="date">{{ note.updatedAtFriendly }}</span>
                 <span class="title">{{ note.title }}</span>
             </router-link>
         </li>
@@ -41,10 +41,17 @@
 <script setup>
     // import { ElMessage } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
-import {ref, onMounted} from 'vue'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-  import Notebooks from '@/apis/notebooks'
-  import Notes from '@/apis/notes'
+import { useNotesStore } from '@/stores/modules/note'
+import { useNotebooksStore } from '@/stores/modules/notebook'
+import { storeToRefs } from 'pinia'
+
+const notesStore = useNotesStore()
+const notebookStore = useNotebooksStore()
+
+const { currentBook, notebooks} = storeToRefs(notebookStore)
+const { notes} = storeToRefs(notesStore)
 
 // 移除重复的 script 标签，合并到 setup 中
 defineOptions({
@@ -52,32 +59,57 @@ defineOptions({
 })
 const route = useRoute() 
 const router = useRouter()
-
-const notebooks = ref([])
-const notes = ref([])
-const currentBook = ref({})
+// const notebooks = ref([])
+// const notes = ref([])
+// const currentBook = ref({})
 // 定义组件发出的事件
 const emit = defineEmits(['update:notes'])
 
 const updateNotesList = (newNotes) => {
-    notes.value = newNotes
+    // notes.value = newNotes
     emit('update:notes', newNotes) 
 }
 
 const getNotebooks = async () =>{
-    const res = await Notebooks.getAll()
-    notebooks.value = res.data
-   
-    // console.log(route);
-    currentBook.value = notebooks.value.find(notebook => notebook.id == route.query.notebookId) 
-    || notebooks.value[0] || {}
+ // ✅ 先获取笔记本列表
+ if (notebookStore.notebooks.length === 0) {
+    await notebookStore.getNotebooks()
+  }
 
-  if(currentBook.value.id){
-    const noteRes = await Notes.getAll({notebookId: currentBook.value.id})
-    notes.value = noteRes.data
-    updateNotesList(noteRes)
+  notebookStore.setCurrentBookId(route.query.notebookId)
+  if (!currentBook.value.id) return
+
+  const noteRes = await notesStore.getNotes({notebookId: currentBook.value.id})
+
+    updateNotesList(noteRes.data || [])
+    
+      // 统一处理路由跳转，用 replace 避免历史记录堆积
+  const newQuery = { notebookId: currentBook.value.id }
+if(route.query.noteId){
+  // URL 已有 noteId，保留它
+  newQuery.noteId = route.query.noteId
+
+  notesStore.setCurrentNoteId(route.query.noteId)
+
+}else if(noteRes.data?.length >0){
+  // URL 没有 noteId，但有笔记，设置第一个
+  newQuery.noteId = noteRes.data[0].id
+
+  notesStore.setCurrentNoteId(noteRes.data[0].id)
+
+}
+// 如果没有笔记，newQuery 就只有 notebookId
+
+// 比较是否需要跳转
+const needRedirect = 
+  newQuery.notebookId !== route.query.notebookId || 
+  newQuery.noteId !== route.query.noteId
+
+  if(needRedirect){
+    router.replace({path: '/note', query: newQuery})
   }
 }
+
 onMounted(() =>{
     getNotebooks()
 })
@@ -98,25 +130,50 @@ const isNoteActive = (noteId, index) => {
         }
     }
 }
-
 const handleCommand = async (notebookId) => {
     if(notebookId == 'trash') {
         router.push({path:'/trash'})
     } else {
         // 找到选中的笔记本并更新 currentBook
-        const selectedNotebook = notebooks.value.find(notebook => notebook.id == notebookId)
-        if (selectedNotebook) {
-            currentBook.value = selectedNotebook
-
-               
-
-            const res = await Notes.getAll({notebookId})
-            notes.value = res.data
-            console.log('切换到笔记本后的笔记:', notes.value)
+        // const selectedNotebook = notebooks.value.find(notebook => notebook.id == notebookId)
+        notebookStore.setCurrentBookId(notebookId)
+        
+        // if (selectedNotebook) {
+            // currentBook.value = selectedNotebook
+            const res = await notesStore.getNotes({notebookId})
+            // const res = await Notes.getAll({notebookId})
+            // notes.value = res.data
+            // console.log('切换到笔记本后的笔记:', notes.value)
             updateNotesList(res.data)
+            
+            // 更新URL参数：更新notebookId，如果有笔记则导航到第一个笔记，否则只更新notebookId
+            if (res.data && res.data.length > 0) {
+                // 有新笔记，导航到第一个笔记
+                router.push({
+                    path: '/note',
+                    query: {
+                        noteId: res.data[0].id,
+                        notebookId: notebookId
+                    }
+                })
+            } else {
+                // 没有笔记，只更新notebookId
+                router.push({
+                    path: '/note',
+                    query: {
+                        notebookId: notebookId
+                    }
+                })
+            }
         }
     }
 //   ElMessage(`click on item ${command}`)
+// }
+
+const onAddNote = async () =>{
+  // const res = await Notes.addNote({notebookId: currentBook.value.id})
+  // notes.value.unshift(res.data)
+  notesStore.addNote(currentBook.value.id)
 }
 </script>
 

@@ -1,15 +1,11 @@
 import axios from "axios";
 import baseURLConfig from './config-baseURL'
+import { ElMessage } from "element-plus";
 
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.baseURL = baseURLConfig.baseURL
 axios.defaults.withCredentials = true
 
-// console.log('当前环境:', process.env.NODE_ENV)
-
-// fetch('/api/auth').then(res => res.json()).then(data => {
-//     console.log('代理测试:', data)
-// })
 
 export default function request(url, type = 'GET', data = {}) {
     return new Promise((resolve, reject) => {
@@ -29,11 +25,18 @@ export default function request(url, type = 'GET', data = {}) {
             if (res.status === 200) {
                 resolve(res.data)
             } else {
-                console.error(res.data);
+                ElMessage({
+                    type: 'error',
+                    message: res.data.msg,
+                  })
                 reject(res.data)
             }
         }).catch(err => {
-            console.error({ msg: '网络异常' });
+            ElMessage({
+                type: 'error',
+                message: '网络异常',
+              })
+            
             reject({ msg: '网络异常' })
         })
     })

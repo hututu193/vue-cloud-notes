@@ -7,7 +7,7 @@
       <router-link to="/trash" title="回收站"><i class="iconfont icon-trash"></i></router-link> 
     </div> 
     <div class="logout" @click="onLogout">
-      <i class="iconfont icon-logout" @click="logout"></i>
+      <i class="iconfont icon-logout" @click="onLogout"></i>
     </div>
   </div>
 </template>
@@ -24,7 +24,7 @@ const router = useRouter()
 // })
 
 // 点击退出登录
-const logout = () =>{
+const onLogout = () =>{
   Auth.logout()
   .then(data =>{
     router.push({path: '/login'})
@@ -46,6 +46,9 @@ const logout = () =>{
   width: 56px;
   text-align: center;
   background-color: #2c333c;
+
+  // height: 100%;
+  border: 1px solid red;
 }
 .icons {
   margin-top: 15px;
