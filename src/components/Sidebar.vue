@@ -47,8 +47,10 @@ const onLogout = () =>{
   text-align: center;
   background-color: #2c333c;
 
+  
+  height: 100vh;
   // height: 100%;
-  border: 1px solid red;
+  // border: 1px solid red;
 }
 .icons {
   margin-top: 15px;

@@ -35,7 +35,8 @@ const routes = [
     {
         path: '/trash',
         name: 'TrashDetail',
-        component: () => import('@/components/TrashDetail.vue')
+        component: () => import('@/components/TrashDetail.vue'),
+        meta: { requiresAuth: true }
     },
     // 可以添加加载状态
     // {

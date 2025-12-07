@@ -66,9 +66,6 @@ defineOptions({
     name: 'NoteDetail'
 })
 
-
-
-
 // ✅ 监听路由变化，更新 currentNoteId
 watch(
   () => route.query.noteId,

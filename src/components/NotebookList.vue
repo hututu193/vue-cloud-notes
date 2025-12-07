@@ -35,13 +35,12 @@
 </template>
 
 <script setup>
- import Auth from '@/apis/auth';
 import { useRouter } from 'vue-router';
 import {ref, onMounted} from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { useUserStore } from '@/stores/modules/user';
-import { useNotebooksStore } from '@/stores/modules/notebook'
+import { useNotebooksStore } from '@/stores/modules/notebooks'
 import { storeToRefs } from 'pinia'
 
 const notebookStore = useNotebooksStore()

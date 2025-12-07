@@ -44,13 +44,13 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useNotesStore } from '@/stores/modules/note'
-import { useNotebooksStore } from '@/stores/modules/notebook'
+import { useNotebooksStore } from '@/stores/modules/notebooks'
 import { storeToRefs } from 'pinia'
 
 const notesStore = useNotesStore()
-const notebookStore = useNotebooksStore()
+const notebooksStore = useNotebooksStore()
 
-const { currentBook, notebooks} = storeToRefs(notebookStore)
+const { currentBook, notebooks} = storeToRefs(notebooksStore)
 const { notes} = storeToRefs(notesStore)
 
 // 移除重复的 script 标签，合并到 setup 中
@@ -72,11 +72,11 @@ const updateNotesList = (newNotes) => {
 
 const getNotebooks = async () =>{
  // ✅ 先获取笔记本列表
- if (notebookStore.notebooks.length === 0) {
-    await notebookStore.getNotebooks()
+ if (notebooksStore.notebooks.length === 0) {
+    await notebooksStore.getNotebooks()
   }
 
-  notebookStore.setCurrentBookId(route.query.notebookId)
+  notebooksStore.setCurrentBookId(route.query.notebookId)
   if (!currentBook.value.id) return
 
   const noteRes = await notesStore.getNotes({notebookId: currentBook.value.id})
@@ -136,7 +136,7 @@ const handleCommand = async (notebookId) => {
     } else {
         // 找到选中的笔记本并更新 currentBook
         // const selectedNotebook = notebooks.value.find(notebook => notebook.id == notebookId)
-        notebookStore.setCurrentBookId(notebookId)
+        notebooksStore.setCurrentBookId(notebookId)
         
         // if (selectedNotebook) {
             // currentBook.value = selectedNotebook

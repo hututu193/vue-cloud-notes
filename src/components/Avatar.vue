@@ -10,9 +10,7 @@ import { onMounted } from 'vue'
 defineOptions({
   name: 'Avatar'
 })
-onMounted(()=>{
-  console.log(slug)
-})
+
 const userStore = useUserStore()
 const { username, slug } = storeToRefs(userStore)  
 
