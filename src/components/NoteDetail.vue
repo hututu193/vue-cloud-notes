@@ -104,6 +104,7 @@ const onUpdateNote = debounce(() => {
     statusText.value = '保存出错'
   })
 }, 300)
+
 // 删除笔记
 const onDeleteNote = async () => {
   try {

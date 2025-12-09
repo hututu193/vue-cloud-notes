@@ -9,9 +9,11 @@
 
 <script setup>
 import Sidebar from './components/Sidebar.vue';
+
 defineOptions({
   name: "App"
 })
+
 </script>
 
 <style>

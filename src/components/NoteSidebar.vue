@@ -57,6 +57,7 @@ const { notes} = storeToRefs(notesStore)
 defineOptions({
     name: 'NoteSidebar'
 })
+
 const route = useRoute() 
 const router = useRouter()
 // const notebooks = ref([])

@@ -6,6 +6,7 @@ import Notebook from '@/apis/notebooks'
 export const useNotebooksStore = defineStore('notebooks', () => {
     const notebooks = ref([])
     const currentBookId = ref(null)
+    const isLoaded = ref(false)//是否已经加载过
 
     const currentBook = computed(() => {
         // 1. 确保 notebooks 是数组
@@ -30,9 +31,16 @@ export const useNotebooksStore = defineStore('notebooks', () => {
         currentBookId.value = id
     }
 
-    const getNotebooks = async () => {
+    const getNotebooks = async (force = false) => {
+           // 如果已加载过且不强制刷新，直接返回
+        if(isLoaded.value && !force){
+            return {data: notebooks.value}
+        }
+
         const res = await Notebook.getAll()
         setNotebooks(res.data)
+        isLoaded.value = true
+        return res
      }
 
     const addNotebook = async (title) => {
@@ -65,18 +73,26 @@ export const useNotebooksStore = defineStore('notebooks', () => {
         })
     }
 
+    //重置状态(登出时调用)
+    const reset = () =>{
+        notebooks.value = []
+        currentBook.value = null
+        isLoaded.value = false
+    }
+
     return {
         // 状态
         notebooks,
         currentBookId,
         currentBook,
-        
+        isLoaded,
         // 方法（actions）
         setNotebooks,
         addNotebook,
         updateNotebook,
         deleteNotebook,
         getNotebooks,
-        setCurrentBookId
+        setCurrentBookId,
+        reset
     }
 })

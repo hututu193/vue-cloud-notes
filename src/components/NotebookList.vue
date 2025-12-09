@@ -9,7 +9,6 @@
         <h3>笔记本列表{{ notebooks.length }}</h3>
         <div class="book-list">
           
-          <!-- 这里需要再次确认key用什么 -->
          <router-link v-for="notebook in notebooks"
          :key="notebook.id" 
          :to="`/note?notebookId=${notebook.id}`" class="notebook">
@@ -19,7 +18,7 @@
               <span>{{notebook.noteCounts}}</span>
               <span class="action" @click.stop.prevent="onEdit(notebook)">编辑</span>  
               <span class="action" @click.stop.prevent="onDelete(notebook)">删除</span>  
-              <span class="date">{{notebook.friendlyCreatedAt}}</span>              
+              <span class="date">{{notebook.createdAtFriendly}}</span>              
             </div>
           </router-link>  
           
@@ -35,23 +34,19 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
 import {ref, onMounted} from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-import { useUserStore } from '@/stores/modules/user';
 import { useNotebooksStore } from '@/stores/modules/notebooks'
 import { storeToRefs } from 'pinia'
 
 const notebookStore = useNotebooksStore()
-const userStore = useUserStore()
+// const userStore = useUserStore()
 const { notebooks} = storeToRefs(notebookStore)
-const router = useRouter();
 
 defineOptions({
   name: 'NotebookList'
 })
-// const notebooks =ref([])
+
 const loading = ref(false)
 
 const loadNotebooks = async () =>{

@@ -12,7 +12,7 @@ export const useNotesStore = defineStore('notes', () => {
         if (notes.value.length === 0) return {}
         if (!currentNoteId.value) return notes.value[0] || {}
 
-        const note = notes.value.find(n => n.id == currentNoteId.value)  // ✅ 加 .value
+        const note = notes.value.find(n => n.id == currentNoteId.value)
         return note || notes.value[0] || {}
     })
 
@@ -37,11 +37,12 @@ export const useNotesStore = defineStore('notes', () => {
 
     const updateNote = async ({noteId}, { title, content }) => {
         const res = await Note.updateNote({ noteId }, { title, content })
-        const note = notes.value.find(n => n.id === noteId)
-        if (note) {
-            note.title = title
-            note.content = content
-        }
+        // const note = notes.value.find(n => n.id === noteId)
+        // if (note) {
+        //     note.title = title
+        //     note.content = content
+        // }
+        return res
     }
 
     const deleteNote = async ({noteId}) => {

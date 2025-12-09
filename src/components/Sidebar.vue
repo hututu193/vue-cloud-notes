@@ -7,38 +7,59 @@
       <router-link to="/trash" title="回收站"><i class="iconfont icon-trash"></i></router-link> 
     </div> 
     <div class="logout" @click="onLogout">
-      <i class="iconfont icon-logout" @click="onLogout"></i>
+      <i class="iconfont icon-logout"></i>
     </div>
   </div>
 </template>
 
-
 <script setup>
 import Avatar from './Avatar.vue'
-import Auth from '../apis/auth'
+import { useUserStore } from '@/stores/modules/user';
 import { useRouter } from 'vue-router' 
+import { ref } from 'vue';
+import { ElMessage } from 'element-plus'
 const router = useRouter() 
 
-// defineOptions({
-//   name: 'Sidebar'
-// })
+const userStore = useUserStore()
+const isLoading = ref(false)
 
+defineOptions({
+  name: 'Sidebar'
+})
 // 点击退出登录
-const onLogout = () =>{
-  Auth.logout()
-  .then(data =>{
-    router.push({path: '/login'})
-  })
+const onLogout = async () => {
+  if (isLoading.value) return
+  
+  try {
+    isLoading.value = true
+    await userStore.logout()
+    
+    ElMessage({
+      type: 'success',
+      message: '已退出登录',
+      duration: 1500,
+    })
+    
+    // 短暂延迟后跳转到登录页
+    setTimeout(() => {
+      router.push({ path: '/login' })
+    }, 300)
+    
+  } catch (error) {
+    console.error('退出登录失败:', error)
+    // 即使 API 失败，也清除本地用户状态
+    userStore.setUser(null)
+    ElMessage({
+      type: 'error',
+      message: '退出登录失败，请重试',
+    })
+  } finally {
+    isLoading.value = false
+  }
 }
 
-
 </script>
 
-<script>
-  export default {
-    name: 'Sidebar'
-  }
-</script>
 
 <style lang="less" scoped>
 #sidebar {

@@ -5,13 +5,19 @@ import Auth from '@/apis/auth'
 export const useUserStore = defineStore('user', () => {
     const user = ref(null)
 
-    const username = computed(() =>{
-        return user.value === null ? '未登录' : user.value.username
-    })
+    const username = computed(() => {
+        if (!user.value || !user.value.username) {
+          return '未登录'
+        }
+        return user.value.username
+      })
 
-    const slug = computed(() =>{
-        return user.value === null ? '未' : user.value.username.charAt(0)
-    })
+    const slug = computed(() => {
+        if (!user.value || !user.value.username) {
+          return '未'
+        }
+        return user.value.username.charAt(0)
+      })
 
     const setUser = (userData) => {
         user.value = userData
@@ -21,11 +27,18 @@ export const useUserStore = defineStore('user', () => {
         const res = await Auth.login({username, password})
         // console.log('登录返回的数据:', res.data)
         // console.log('数据类型:', typeof res.data)
-
-        // 修改这里：提取 username 属性
         setUser({username: res.data.username})
         return res
     }
+    //登出
+  const logout = async () => {
+    try {
+      await Auth.logout()
+    } finally {
+      setUser(null)  // 设置为 null，而不是 {username: null}
+    }
+  }
+
 
     const register = async ({username, password}) =>{
         const res = await Auth.register({username, password})
@@ -40,7 +53,6 @@ export const useUserStore = defineStore('user', () => {
         try {
             const res = await Auth.getInfo()
             if (res.isLogin) {
-                // 同样修改这里：提取 username 属性
                 user.value = {username: res.data.username}
                 return true
             }
@@ -55,6 +67,7 @@ export const useUserStore = defineStore('user', () => {
         user,
         slug,
         username,
+        logout,
         checkAuth,
         login,
         register,

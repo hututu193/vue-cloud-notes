@@ -49,6 +49,7 @@ import {onMounted, computed, watch} from 'vue'
 import { useTrashStore } from '@/stores/modules/trash';
 import { storeToRefs } from 'pinia'
 import MarkdownIt from 'markdown-it';
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useNotebooksStore } from '@/stores/modules/notebooks';
 
 const md = new MarkdownIt();
@@ -120,15 +121,6 @@ watch(
   },
   { immediate: true }
 )
-// const trashNotes = ref([
-// {
-//   id: 2,
-//   title: '我的笔记',
-//   content: '## hello',
-//   createdAtFriendly: '2小时前',
-//   updatedAtFriendly: '1小时前' // 添加这个属性
-// },
-//)
 
 const isNoteActive = (noteId, index) => {
     const currentNoteId = route.query.noteId
@@ -145,34 +137,54 @@ const isNoteActive = (noteId, index) => {
     }
 }
 
-const onDelete = () => {
+const onDelete = async () => {
   if (!currTrashNote.value || !currTrashNote.value.id) {
     console.error('没有选中笔记')
+    ElMessage({
+      type: 'warning',
+      message: '请先选择要删除的笔记',
+    })
     return
   }
   
   const noteId = currTrashNote.value.id
-  if (confirm('确定要彻底删除这篇笔记吗？')) {
-    trashStore.deleteNote(noteId).then(() => {
-      // 删除后，如果有其他笔记，跳转到第一个
-      if (trashNotes.value.length > 0) {
-        router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
-      } else {
-        // 如果没有笔记了，清空URL参数
-        router.replace({ path: '/trash' })
-      }
+  try {
+    await ElMessageBox.confirm('删除后将无法恢复', '确定删除？', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
     })
+    // 用户点击了确定
+    await trashStore.deleteNote(noteId)
+    // 删除后的跳转逻辑
+    if (trashNotes.value.length > 0) {
+      router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
+    } else {
+      router.replace({ path: '/trash' })
+      // 可以添加一个提示，说明回收站已空
+      ElMessage({
+        type: 'info',
+        message: '回收站已清空',
+        duration: 1500,
+      })
+    }
+  } catch (error) {
+     // 用户点击了取消
+     if (error === 'cancel' || error === 'close') {
+      console.log('用户取消了删除操作')
+    } else {
+      // 其他错误（如网络错误等）
+      console.error('删除操作发生错误:', error)
+    }
   }
-}
+  }
 
 const onRevert = () => {
   if (!currTrashNote.value || !currTrashNote.value.id) {
-    console.error('没有选中笔记')
+ 
     return
   }
-  
   const noteId = currTrashNote.value.id
-  if (confirm('确定要恢复这篇笔记吗？')) {
+
     trashStore.revertNote(noteId).then(() => {
       // 恢复后，如果有其他笔记，跳转到第一个
       if (trashNotes.value.length > 0) {
@@ -182,7 +194,7 @@ const onRevert = () => {
         router.replace({ path: '/trash' })
       }
     })
-  }
+  
 }
 
 </script>
