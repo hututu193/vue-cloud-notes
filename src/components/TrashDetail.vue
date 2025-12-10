@@ -1,51 +1,78 @@
 <template>
-  <div id="trash"  class="detail">
+  <div id="trash" class="detail">
+    
     <div class="note-sidebar">
-      <h3 class="notebook-title">回收站</h3>
-      <div class="menu">
-        <div>更新时间</div>
-        <div>标题</div>
+      
+      <div class="sidebar-header">
+        <h3 class="notebook-title">
+          <i class="iconfont icon-trash"></i> 回收站
+        </h3>
       </div>
 
-      <ul class="notes">
-        <li v-for="(note, index) in trashNotes" :key="note.id">
-          <router-link :to="`/trash?noteId=${note.id}`"
-          :class="{ 'active': isNoteActive(note.id, index) }">
-            <span class="date">{{ note.updatedAtFriendly }}</span>
-            <span class="title">{{ note.title }}</span>
-          </router-link>
-        </li>
-      </ul>
+      <div class="notes-wrapper">
+        <el-empty 
+          v-if="trashNotes.length === 0" 
+          description="回收站是空的" 
+          :image-size="60"
+        />
+
+        <ul class="note-list" v-else>
+          <li v-for="(note, index) in trashNotes" :key="note.id">
+            <router-link 
+              :to="`/trash?noteId=${note.id}`"
+              class="note-item"
+              :class="{ 'active': isNoteActive(note.id, index) }"
+            >
+              <span class="note-title">{{ note.title || '无标题笔记' }}</span>
+              <span class="note-date">{{ note.updatedAtFriendly }}</span>
+            </router-link>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="note-detail">
-      <div class="note-bar" v-if="true">
-        <span>创建日期: {{ currTrashNote.createdAtFriendly }}</span>
-        <span> | </span>
-        <span>更新日期: {{ currTrashNote.updatedAtFriendly }}</span>
-        <span> | </span>
-        <span>所属笔记本: {{ belongTo }}</span>
+      
+      <div class="note-detail-ct" v-if="currTrashNote.id">
+        
+        <div class="note-bar">
+          <div class="meta-info">
+            <span>原属于: <b>{{ belongTo }}</b></span>
+            <span class="divider">|</span>
+            <span>删除时间: {{ currTrashNote.updatedAtFriendly }}</span>
+          </div>
+          
+          <div class="actions">
+            <el-button type="primary" size="small" plain @click="onRevert">
+              <i class="iconfont icon-refresh"></i> 恢复笔记
+            </el-button>
+            <el-button type="danger" size="small" plain @click="onDelete">
+              <i class="iconfont icon-delete"></i> 彻底删除
+            </el-button>
+          </div>
+        </div>
 
-        <a class="btn action" @click="onRevert">恢复</a>
-        <a class="btn action" @click="onDelete">彻底删除</a>
+        <div class="note-title">
+          <span>{{ currTrashNote.title }}</span>
+        </div>
+
+        <div class="editor">
+          <div class="preview markdown-body" v-html="compiledMarkdown"></div>
+        </div>
       </div>
-      <div class="note-title">
-        <span>{{ currTrashNote.title }}</span>
+
+      <div class="note-empty" v-else>
+        <el-empty description="选择一条笔记查看详情" />
       </div>
-      <div class="editor">
-        <div class="preview markdown-body" v-html="compiledMarkdown"></div>
-      </div>
+
     </div>
-
-<!-- 如果没有选中笔记，显示提示 -->
-
 
   </div>
 </template>
 
 <script setup>
-import {useRoute, useRouter} from 'vue-router';
-import {onMounted, computed, watch} from 'vue'
+import { useRoute, useRouter } from 'vue-router';
+import { onMounted, computed, watch } from 'vue'
 import { useTrashStore } from '@/stores/modules/trash';
 import { storeToRefs } from 'pinia'
 import MarkdownIt from 'markdown-it';
@@ -56,172 +83,242 @@ const md = new MarkdownIt();
 const route = useRoute()
 const router = useRouter()
 const trashStore = useTrashStore()
-const {currTrashNote, trashNotes} = storeToRefs(trashStore)
+const { currTrashNote, trashNotes } = storeToRefs(trashStore)
 
 const notebooksStore = useNotebooksStore()
 const { notebooks } = storeToRefs(notebooksStore) 
 
-defineOptions({
-  name: 'TrashDetail'
-})
+defineOptions({ name: 'TrashDetail' })
 
-const compiledMarkdown = computed(() =>{
-   return md.render(currTrashNote.value.content || '')
-})
-const belongTo = computed(() =>{
-  if(!currTrashNote.value || !currTrashNote.value.notebookId) {
-    return '未知笔记本'
-  }  
-  // 笔记本数据还没加载完
-  if(!notebooks.value || notebooks.value.length === 0){
-    return '加载中'
-  }
+const compiledMarkdown = computed(() => md.render(currTrashNote.value.content || ''))
 
-  const notebook = notebooks.value.find(
-    notebook => notebook.id == currTrashNote.value.notebookId
-  )
+const belongTo = computed(() => {
+  if(!currTrashNote.value || !currTrashNote.value.notebookId) return '未知笔记本'
+  if(!notebooks.value || notebooks.value.length === 0) return '加载中...'
+  const notebook = notebooks.value.find(nb => nb.id == currTrashNote.value.notebookId)
   return notebook ? notebook.title : '未知笔记本'
 })
-// const currTrashNote = ref({
-//   id: 2,
-//   title: '我的笔记',
-//   content: '## hello',
-//   createdAtFriendly: '2小时前',
-//   updatedAtFriendly: '1小时前' // 添加这个属性
-// })
-const loadAllData = async () =>{
+
+const loadAllData = async () => {
   try {
     await trashStore.getTrashNotes()
     await notebooksStore.getNotebooks()
-    // 如果有路由参数，设置当前笔记
     if (route.query.noteId) {
       trashStore.setCurrTrashNoteId(route.query.noteId)
     } else if (trashNotes.value.length > 0) {
-      // 如果没有noteId但有笔记，默认选择第一个并更新URL
       const firstNoteId = trashNotes.value[0].id
       router.replace({ path: '/trash', query: { noteId: firstNoteId } })
     }
   } catch (error) {
     console.error('加载回收站笔记失败:', error)
   }
-
 }
-onMounted(() =>{
+
+onMounted(() => {
   loadAllData()
 })
 
-
-// 监听路由参数变化
-watch(
-  () => route.query.noteId,
-  (newNoteId) => {
-    if (newNoteId) {
-      trashStore.setCurrTrashNoteId(newNoteId)
-    }
-  },
-  { immediate: true }
-)
+watch(() => route.query.noteId, (newNoteId) => {
+  if (newNoteId) trashStore.setCurrTrashNoteId(newNoteId)
+}, { immediate: true })
 
 const isNoteActive = (noteId, index) => {
     const currentNoteId = route.query.noteId
-    if (currentNoteId) {
-        // 有选中的笔记，匹配对应的笔记
-        return currentNoteId == noteId
-    } else {
-        // 没有选中的笔记，默认第一个笔记为active
-        if (index === 0) {
-            return true
-        } else {
-            return false
-        }
-    }
+    if (currentNoteId) return currentNoteId == noteId
+    return index === 0
 }
 
 const onDelete = async () => {
-  if (!currTrashNote.value || !currTrashNote.value.id) {
-    console.error('没有选中笔记')
-    ElMessage({
-      type: 'warning',
-      message: '请先选择要删除的笔记',
-    })
-    return
-  }
+  if (!currTrashNote.value?.id) return
   
-  const noteId = currTrashNote.value.id
   try {
-    await ElMessageBox.confirm('删除后将无法恢复', '确定删除？', {
-      confirmButtonText: '确定',
+    await ElMessageBox.confirm('彻底删除后将无法恢复，确定吗？', '警示', {
+      confirmButtonText: '彻底删除',
       cancelButtonText: '取消',
+      type: 'warning',
     })
-    // 用户点击了确定
-    await trashStore.deleteNote(noteId)
-    // 删除后的跳转逻辑
+    await trashStore.deleteNote(currTrashNote.value.id)
+    ElMessage.success('已彻底删除')
+    
     if (trashNotes.value.length > 0) {
       router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
     } else {
       router.replace({ path: '/trash' })
-      // 可以添加一个提示，说明回收站已空
-      ElMessage({
-        type: 'info',
-        message: '回收站已清空',
-        duration: 1500,
-      })
     }
   } catch (error) {
-     // 用户点击了取消
-     if (error === 'cancel' || error === 'close') {
-      console.log('用户取消了删除操作')
-    } else {
-      // 其他错误（如网络错误等）
-      console.error('删除操作发生错误:', error)
-    }
+    if (error !== 'cancel' && error !== 'close') ElMessage.error('删除失败')
   }
-  }
+}
 
-const onRevert = () => {
-  if (!currTrashNote.value || !currTrashNote.value.id) {
- 
-    return
-  }
-  const noteId = currTrashNote.value.id
-
-    trashStore.revertNote(noteId).then(() => {
-      // 恢复后，如果有其他笔记，跳转到第一个
+const onRevert = async () => {
+  if (!currTrashNote.value?.id) return
+  try {
+      await trashStore.revertNote(currTrashNote.value.id)
+      ElMessage.success('笔记已恢复')
       if (trashNotes.value.length > 0) {
         router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
       } else {
-        // 如果没有笔记了，清空URL参数
         router.replace({ path: '/trash' })
       }
-    })
-  
+  } catch (e) {
+      ElMessage.error('恢复失败')
+  }
 }
-
 </script>
- 
 
 <style lang="less" scoped>
-@import url(../assets/css/note-sidebar.less);
-@import url(../assets/css/note-detail.less);
+/* 这里的 CSS 我全部内联重写了，不再依赖外部文件，保证效果立刻生效 */
 
 #trash {
-  display: flex;  
-  align-items: stretch;
+  display: flex;
+  height: 100%;
   background-color: #fff;
-  flex: 1;
+}
 
-  height: 100%; /* 添加这行 - 关键！ */
-  min-height: 0; /* 添加这行 - 关键！ */
+/* --- 1. 左侧 Sidebar 样式 (复用 NoteSidebar 的风格) --- */
+.note-sidebar {
+  width: 280px;
+  height: 100%;
+  background-color: #f9f9f9;
+  border-right: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
 
-
-  .note-bar {
-    .action {
-      float: right;
-      margin-left: 10px;
-      padding: 2px 4px;
-      font-size: 12px;
-
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid #eef0f2;
+    background: #f9f9f9;
+    
+    .notebook-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
- }
+
+  .notes-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+
+  .note-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .note-item {
+    display: flex;             /* 左右布局 */
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    margin: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+
+    .note-title {
+      font-size: 14px;
+      color: #333;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 10px;
+    }
+
+    .note-date {
+      font-size: 12px;
+      color: #999;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    &.active {
+      background-color: #fff;
+      border: 1px solid #409eff;
+      box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+      
+      .note-title { color: #409eff; font-weight: bold; }
+      .note-date { color: #409eff; }
+    }
+  }
+}
+
+/* --- 2. 右侧 Detail 样式 --- */
+.note-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  height: 100%;
+  
+  .note-detail-ct {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 顶部操作条 */
+  .note-bar {
+    padding: 15px 40px;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    justify-content: space-between; /* 两端对齐：左边信息，右边按钮 */
+    align-items: center;
+    background-color: #fff;
+
+    .meta-info {
+      font-size: 12px;
+      color: #999;
+      .divider { margin: 0 10px; color: #eee; }
+      b { color: #666; }
+    }
+    
+    .actions {
+      display: flex;
+      gap: 10px; /* 按钮之间的间距 */
+    }
+  }
+
+  .note-title {
+    padding: 20px 40px 0 40px;
+    span {
+      display: block;
+      font-size: 32px;
+      font-weight: bold;
+      color: #333;
+    }
+  }
+
+  .editor {
+    flex: 1;
+    padding: 20px 40px;
+    overflow-y: auto;
+    
+    .preview {
+      font-size: 16px;
+      line-height: 1.8;
+      color: #333;
+    }
+  }
+  
+  /* 空状态居中 */
+  .note-empty {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
 </style>

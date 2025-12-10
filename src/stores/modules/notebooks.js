@@ -38,8 +38,11 @@ export const useNotebooksStore = defineStore('notebooks', () => {
         }
 
         const res = await Notebook.getAll()
+        // console.log("store", res)
         setNotebooks(res.data)
         isLoaded.value = true
+
+
         return res
      }
 

@@ -15,8 +15,8 @@ export default {
             notebook1.createdAt < notebook2.createdAt ? 1 : -1
         )
         res.data.forEach(element => {
-            res.data.createdAtFriendly = friendlyDate(res.data.createdAt)
-            res.data.updatedAtFriendly = friendlyDate(res.data.updatedAt)
+            element.createdAtFriendly = friendlyDate(element.createdAt)
+            element.updatedAtFriendly = friendlyDate(element.updatedAt)
         })
         return res
     },

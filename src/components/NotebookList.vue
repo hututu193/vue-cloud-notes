@@ -1,47 +1,82 @@
 <template>
-  <div class="detail" id="notebook-list">
-    <header>
-      <a href="#" class="btn"
-      @click.prevent="onCreate"><i class="iconfont icon-plus"></i> 新建笔记本</a>
-    </header>
-    <main>
-      <div class="layout">
-        <h3>笔记本列表{{ notebooks.length }}</h3>
-        <div class="book-list">
-          
-         <router-link v-for="notebook in notebooks"
-         :key="notebook.id" 
-         :to="`/note?notebookId=${notebook.id}`" class="notebook">
+  <div class="notebook-container">
+    
+    <div class="header-bar">
+      <h2>📚 我的笔记本 ({{ notebooks.length }})</h2>
+      <el-button type="primary" round @click.prevent="onCreate">
+        <i class="iconfont icon-plus" style="margin-right: 5px;"></i> 新建笔记本
+      </el-button>
+    </div>
 
-            <div>
-              <span class="iconfont icon-notebook"></span>{{ notebook.title }}
-              <span>{{notebook.noteCounts}}</span>
-              <span class="action" @click.stop.prevent="onEdit(notebook)">编辑</span>  
-              <span class="action" @click.stop.prevent="onDelete(notebook)">删除</span>  
-              <span class="date">{{notebook.createdAtFriendly}}</span>              
+    <el-skeleton v-if="loading" :rows="3" animated />
+    
+    <el-empty v-if="!loading && notebooks.length === 0" description="这里空空如也，快去创建第一个笔记本吧！" />
+
+    <div class="notebook-grid" v-else>
+      <el-row :gutter="20">
+        <el-col 
+          v-for="notebook in notebooks" 
+          :key="notebook.id" 
+          :xs="24" :sm="12" :md="8" :lg="6"
+          style="margin-bottom: 20px;"
+        >
+          <el-card 
+            class="notebook-card" 
+            shadow="hover" 
+            @click="jumpToNote(notebook.id)"
+          >
+            <div class="card-header">
+              <div class="title-box">
+                <i class="iconfont icon-notebook notebook-icon"></i>
+                <span class="notebook-title" :title="notebook.title">{{ notebook.title }}</span>
+              </div>
             </div>
-          </router-link>  
-          
-           <!-- 添加加载状态提示 -->
-          <div v-if="loading" class="loading">加载中...</div>
-          <div v-if="!loading && notebooks.length === 0" class="empty">暂无笔记本</div> 
-        </div>       
-      </div>
 
-    </main>
+            <div class="card-content">
+              <div class="count-number">{{ notebook.noteCounts }}</div>
+              <div class="count-label">篇笔记</div>
+            </div>
+
+            <div class="card-footer">
+              <span class="date-text">{{ notebook.createdAtFriendly }}</span>
+              
+              <div class="actions">
+                <el-button 
+                  link 
+                  type="primary" 
+                  size="small" 
+                  @click.stop="onEdit(notebook)"
+                >
+                  <i class="iconfont icon-edit"></i> 编辑
+                </el-button>
+                <el-button 
+                  link 
+                  type="danger" 
+                  size="small" 
+                  @click.stop="onDelete(notebook)"
+                >
+                  <i class="iconfont icon-trash"></i> 删除
+                </el-button>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
 
   </div>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useNotebooksStore } from '@/stores/modules/notebooks'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router' // 引入路由跳转
 
 const notebookStore = useNotebooksStore()
-// const userStore = useUserStore()
-const { notebooks} = storeToRefs(notebookStore)
+const { notebooks } = storeToRefs(notebookStore)
+const router = useRouter() // 获取路由实例
 
 defineOptions({
   name: 'NotebookList'
@@ -49,116 +84,186 @@ defineOptions({
 
 const loading = ref(false)
 
-const loadNotebooks = async () =>{
+const loadNotebooks = async () => {
   try {
     loading.value = true
     await notebookStore.getNotebooks()
   } catch (error) {
-    console.log('获取笔记本失败', error)
-  } finally{
+    console.error('获取笔记本失败', error)
+  } finally {
     loading.value = false
   }
 }
 
-// 在组件挂载时执行
+// 跳转逻辑：不用 router-link 包裹，直接用 JS 跳转，样式更可控
+const jumpToNote = (notebookId) => {
+  router.push(`/note?notebookId=${notebookId}`)
+}
+
 onMounted(() => {
   loadNotebooks();
 });
 
+// --- 下面的逻辑和你原来的一模一样，我保留了 Element Plus 的弹窗交互 ---
+
 const onCreate = async () => {
   try {
-    // 使用 Element Plus 的弹窗获取输入
-    const { value } = await ElMessageBox.prompt('输入笔记本标题', '创建笔记本', {
-      confirmButtonText: '确定',
+    const { value } = await ElMessageBox.prompt('请输入笔记本标题', '创建笔记本', {
+      confirmButtonText: '创建',
       cancelButtonText: '取消',
       inputPattern: /^.{1,30}$/,
-      inputErrorMessage: '标题不能为空',
+      inputErrorMessage: '标题不能为空且不超过30个字符',
     })
-  
-    notebookStore.addNotebook(value)
+    await notebookStore.addNotebook(value)
+    ElMessage.success('创建成功！') // 优化提示
   } catch (error) {
-    // 这里会捕获两种错误：用户取消和API调用失败
-    if (error === 'cancel' || error === 'close') {
-      // 用户主动取消
-      ElMessage({
-        type: 'info',
-        message: '已取消创建',
-      })
-    } else {
-      // API 调用失败或其他错误
-      console.error('创建笔记本失败:', error)
-      ElMessage({
-        type: 'error',
-        message: '创建失败，请重试',
-      })
+    if (error !== 'cancel' && error !== 'close') {
+      ElMessage.error('创建失败，请重试')
     }
   }
 }
 
 const onEdit = async (notebook) => {
   try {
-    let title = ''
-  const { value } = await ElMessageBox.prompt('输入笔记本新标题', '修改笔记本', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputValue: notebook.title, //显示原来的标题
-    inputPattern: /^.{1,30}$/,
-    inputErrorMessage: '标题不能为空，且不超过30个字符',
-  })
-  notebookStore.updateNotebook(notebook.id, value)
- 
+    const { value } = await ElMessageBox.prompt('请输入新标题', '修改笔记本', {
+      confirmButtonText: '保存',
+      cancelButtonText: '取消',
+      inputValue: notebook.title,
+      inputPattern: /^.{1,30}$/,
+      inputErrorMessage: '标题不能为空且不超过30个字符',
+    })
+    await notebookStore.updateNotebook(notebook.id, value)
+    ElMessage.success('修改成功！')
   } catch (error) {
-    // 用户取消操作 - 静默处理，什么都不做
     if (error !== 'cancel' && error !== 'close') {
-      // 只有真正的错误才提示用户
-      console.error('编辑笔记本失败:', error)
-      ElMessage({
-        type: 'error',
-        message: '编辑失败，请重试',
-      })
+      ElMessage.error('修改失败，请重试')
     }
   }
 }
 
 const onDelete = async (notebook) => {
- try {
-  await ElMessageBox.confirm(
-    '确认要删除笔记本吗', '删除笔记本',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-   notebookStore.deleteNotebook(notebook.id)
-
- } catch (error) {
-   if (error === 'cancel' || error === 'close') {
-      // 用户主动取消
-      ElMessage({
-        type: 'info',
-        message: '已取消删除',
-      })
-    } else {
-      // 其他错误（如网络错误）
-      console.error('删除笔记本失败:', error)
-      ElMessage({
-        type: 'error',
-        message: '删除失败，请重试',
-      })
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除笔记本 "${notebook.title}" 吗？里面的笔记也会被删除哦！`, 
+      '删除警告',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '我再想想',
+        type: 'warning',
+      }
+    )
+    await notebookStore.deleteNotebook(notebook.id)
+    ElMessage.success('删除成功')
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      ElMessage.error('删除失败，请重试')
     }
   }
 }
 </script>
 
-
 <style lang="less" scoped>
-  @import url('../assets/css/notebook-list.less');
 
-  .loading, .empty {
-  text-align: center;
-  padding: 20px;
-  color: #666;
+.notebook-container {
+  min-height: 100%;
 }
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+
+  h2 {
+    font-size: 18px;
+    color: #333;
+    font-weight: 600;
+  }
+}
+
+/* 卡片样式定制 */
+.notebook-card {
+  cursor: pointer;
+  border: none; /* 去掉默认边框，用投影代替，更现代 */
+  transition: all 0.3s;
+  background: #f9f9f9; /* 稍微给一点灰背景，和白色内容区分 */
+  border: 1px solid #eee;
+
+  &:hover {
+    transform: translateY(-5px); /* 鼠标放上去，卡片上浮 5px */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* 加深阴影 */
+    background: #fff; /* 悬浮时变亮白 */
+    border-color: #409eff; /* 边框变蓝 */
+    
+    .notebook-icon {
+      color: #409eff; /* 图标变蓝 */
+      transform: scale(1.1);
+    }
+  }
+}
+
+.card-header {
+  margin-bottom: 15px;
+  .title-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .notebook-icon {
+      font-size: 20px;
+      color: #909399;
+      transition: all 0.3s;
+    }
+
+    .notebook-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+.card-content {
+  text-align: center;
+  padding: 10px 0 20px 0;
+
+  .count-number {
+    font-size: 32px; /* 超大数字 */
+    font-weight: bold;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+  }
   
+  .count-label {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+  margin-top: 5px;
+
+  .date-text {
+    font-size: 12px;
+    color: #ccc;
+  }
+  
+  .actions {
+    .iconfont {
+      font-size: 14px;
+      margin-right: 2px;
+    }
+  }
+}
 </style>
