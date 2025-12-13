@@ -1,0 +1,1 @@
+import{_ as a,c as s,a as r,t as e,o as n}from"./index-B5GYzFEp.js";const c={data(){return{msg:"笔记详情页"}}},d={id:"note-detail"};function _(t,i,p,l,o,f){return n(),s("div",d,[r("h1",null,e(o.msg)+" : "+e(t.$route.params.noteId),1)])}const u=a(c,[["render",_],["__scopeId","data-v-03fd559b"]]);export{u as default};

@@ -1,0 +1,1 @@
+import{_ as s,c as o,a as r,t as e,o as c}from"./index-B5GYzFEp.js";const n={data(){return{msg:"回收站笔记详情页"}}},d={id:"trash-detail"};function _(t,i,p,l,a,m){return c(),o("div",d,[r("h1",null,e(a.msg)+" : "+e(t.$route.params.noteId),1)])}const f=s(n,[["render",_],["__scopeId","data-v-88947ce7"]]);export{f as default};

@@ -1,0 +1,1 @@
+import{_ as n,c as r,a as t,t as s,o as a}from"./index-B5GYzFEp.js";const l={name:"SimpleTest",data(){return{currentTime:new Date().toLocaleTimeString()}},mounted(){console.log("SimpleTest 组件已挂载")}};function c(i,e,p,m,o,u){return a(),r("div",null,[e[0]||(e[0]=t("h1",null,"简单测试页面",-1)),t("p",null,"当前时间: "+s(o.currentTime),1)])}const _=n(l,[["render",c]]);export{_ as default};
