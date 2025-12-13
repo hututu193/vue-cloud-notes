@@ -16,11 +16,13 @@ export default function request(url, type = 'GET', data = {}) {
                 return (status >= 200 && status < 300) || status === 400
             }
         }
+        
         if (type.toLowerCase() === 'get') {
             option.params = data
         } else {
             option.data = data
         }
+        
         axios(option).then(res => {
             if (res.status === 200) {
                 resolve(res.data)

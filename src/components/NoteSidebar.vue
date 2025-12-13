@@ -60,8 +60,8 @@
   <script setup>
   import { onMounted, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { useNotesStore } from '@/stores/modules/note'
-  import { useNotebooksStore } from '@/stores/modules/notebooks'
+  import { useNotesStore } from '@/stores/note'
+  import { useNotebooksStore } from '@/stores/notebooks'
   import { storeToRefs } from 'pinia'
   
   const notesStore = useNotesStore()
@@ -103,8 +103,6 @@
     const noteRes = await notesStore.getNotes({notebookId: currentBook.value.id})
     emit('update:notes', noteRes.data || [])
     
-    // 简单的路由初始化逻辑
-    // ... (保留你原本的初始化逻辑)
   }
   
   const isNoteActive = (noteId, index) => {

@@ -68,7 +68,7 @@ export const useNotebooksStore = defineStore('notebooks', () => {
     const deleteNotebook = async (notebookId) =>{
         const res = await Notebook.deleteNotebook(notebookId)
 
-        console.log(res);
+       
         notebooks.value = notebooks.value.filter(n => n.id !== notebookId)
         ElMessage({
             type: 'success',

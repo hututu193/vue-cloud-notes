@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 
 defineOptions({

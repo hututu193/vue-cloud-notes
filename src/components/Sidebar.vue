@@ -37,7 +37,7 @@
 <script setup>
 /* 逻辑部分代码一个字都不用动，全是通用的 */
 import Avatar from './Avatar.vue'
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'

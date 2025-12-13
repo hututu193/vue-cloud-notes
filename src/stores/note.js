@@ -1,7 +1,6 @@
 import Note from '@/apis/notes'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { ElMessage } from 'element-plus'
 
 export const useNotesStore = defineStore('notes', () => {
     const notes = ref([])

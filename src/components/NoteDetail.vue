@@ -64,60 +64,65 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { debounce } from 'lodash'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import NoteSidebar from './NoteSidebar.vue'
-import MarkdownIt from 'markdown-it'
-import { useNotesStore } from '@/stores/modules/note'
-import { storeToRefs } from 'pinia'
-
-// ... 逻辑部分完全保持你原来的，一个字都不用改 ...
-// 只是为了演示完整性，我把 key logic 贴在这里占位
-const notesStore = useNotesStore()
-const { notes, currentNote } = storeToRefs(notesStore)
-const route = useRoute()
-const router = useRouter()
-const md = new MarkdownIt()
-const statusText = ref('已保存')
-const isShowPreview = ref(false)
-
-defineOptions({ name: 'NoteDetail' })
-
-// 监听路由、更新函数、删除函数保持原样...
-watch(() => route.query.noteId, (newId) => {
-  if (newId) notesStore.setCurrentNoteId(newId)
-}, { immediate: true })
-
-const handleNotesUpdate = (newNotes) => {
-  notes.value = newNotes || []
-}
-
-const previewContent = computed(() => {
-  return currentNote.value.content ? md.render(currentNote.value.content) : ''
-})
-
-const onUpdateNote = debounce(() => {
-  if (!currentNote.value.id) return
-  notesStore.updateNote({ noteId: currentNote.value.id }, {
-    title: currentNote.value.title,
-    content: currentNote.value.content
-  }).then(() => statusText.value = '已保存').catch(() => statusText.value = '保存出错')
-}, 300)
-
-const onDeleteNote = async () => {
-    // 建议加上 Element 弹窗确认，更安全
-    await ElMessageBox.confirm('确认删除吗？', '提示', { type: 'warning' })
-    const res = await notesStore.deleteNote({ noteId: currentNote.value.id})
-    ElMessage.success(res.msg || '删除成功')
-    const notebookId = route.query.notebookId
-    // 简单粗暴的跳转逻辑
-    notes.value.length > 0 
-      ? router.replace({ path: '/note', query: { noteId: notes.value[0].id, notebookId }})
-      : router.replace({ path: '/note', query: { notebookId }})
-}
-</script>
+  import { ref, computed, watch } from 'vue'
+  import { useRouter, useRoute } from 'vue-router'
+  import { debounce } from 'lodash'
+  import {  ElMessage, ElMessageBox } from 'element-plus'
+  import NoteSidebar from './NoteSidebar.vue'
+  import MarkdownIt from 'markdown-it'
+  import { useNotesStore } from '@/stores/note'
+  import { storeToRefs } from 'pinia'
+  
+  const notesStore = useNotesStore()
+  const { notes, currentNote } = storeToRefs(notesStore)
+  const route = useRoute()
+  const router = useRouter()
+  const md = new MarkdownIt()
+  const statusText = ref('已保存')
+  const isShowPreview = ref(false)
+  
+  defineOptions({ name: 'NoteDetail' })
+  
+  watch(() => route.query.noteId, (newId) => {
+    if (newId) notesStore.setCurrentNoteId(newId)
+  }, { immediate: true })
+  
+  const handleNotesUpdate = (newNotes) => {
+    notes.value = newNotes || []
+  }
+  
+  const previewContent = computed(() => {
+    return currentNote.value.content ? md.render(currentNote.value.content) : ''
+  })
+  
+  const onUpdateNote = debounce(() => {
+    if (!currentNote.value.id) return
+    notesStore.updateNote({ noteId: currentNote.value.id }, {
+      title: currentNote.value.title,
+      content: currentNote.value.content
+    }).then(() => statusText.value = '已保存').catch(() => statusText.value = '保存出错')
+  }, 300)
+  
+  const onDeleteNote = async () => {
+    try {
+      // 1. 简单确认
+      await ElMessageBox.confirm('确认删除吗？', '提示', { type: 'warning' })
+      
+      // 2. 调用接口删除
+      const res = await notesStore.deleteNote({ noteId: currentNote.value.id})
+      ElMessage.success(res.msg || '删除成功')
+  
+      // 3. 直接跳转（完全不碰笔记本Store，防止报错）
+      const notebookId = route.query.notebookId
+      notes.value.length > 0 
+        ? router.replace({ path: '/note', query: { noteId: notes.value[0].id, notebookId }})
+        : router.replace({ path: '/note', query: { notebookId }})
+        
+    } catch (error) {
+       if (error !== 'cancel') console.error(error)
+    }
+  }
+  </script>
 
 <style lang="less" scoped>
 /* 整个页面容器 */

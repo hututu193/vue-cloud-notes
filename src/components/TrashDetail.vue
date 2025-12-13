@@ -73,11 +73,11 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, computed, watch } from 'vue'
-import { useTrashStore } from '@/stores/modules/trash';
+import { useTrashStore } from '@/stores/trash';
 import { storeToRefs } from 'pinia'
 import MarkdownIt from 'markdown-it';
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useNotebooksStore } from '@/stores/modules/notebooks';
+import { useNotebooksStore } from '@/stores/notebooks';
 
 const md = new MarkdownIt();
 const route = useRoute()
@@ -138,7 +138,8 @@ const onDelete = async () => {
       type: 'warning',
     })
     await trashStore.deleteNote(currTrashNote.value.id)
-    ElMessage.success('已彻底删除')
+    
+    // ElMessage.success('已彻底删除')
     
     if (trashNotes.value.length > 0) {
       router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
@@ -154,7 +155,9 @@ const onRevert = async () => {
   if (!currTrashNote.value?.id) return
   try {
       await trashStore.revertNote(currTrashNote.value.id)
-      ElMessage.success('笔记已恢复')
+
+      // ElMessage.success('笔记已恢复')
+
       if (trashNotes.value.length > 0) {
         router.replace({ path: '/trash', query: { noteId: trashNotes.value[0].id } })
       } else {
@@ -167,7 +170,7 @@ const onRevert = async () => {
 </script>
 
 <style lang="less" scoped>
-/* 这里的 CSS 我全部内联重写了，不再依赖外部文件，保证效果立刻生效 */
+/* CSS全部内联重写了，不再依赖外部文件*/
 
 #trash {
   display: flex;

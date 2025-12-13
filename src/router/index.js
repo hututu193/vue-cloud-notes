@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/user'
 
 // 只有最核心的组件（如首页、登录页）使用同步导入
 

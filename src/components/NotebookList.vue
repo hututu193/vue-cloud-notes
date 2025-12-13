@@ -33,7 +33,7 @@
             </div>
 
             <div class="card-content">
-              <div class="count-number">{{ notebook.noteCounts }}</div>
+              <div class="count-number">{{ notebook.noteCounts? notebook.noteCounts : '0' }}</div>
               <div class="count-label">篇笔记</div>
             </div>
 
@@ -70,7 +70,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useNotebooksStore } from '@/stores/modules/notebooks'
+import { useNotebooksStore } from '@/stores/notebooks'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router' // 引入路由跳转
 
@@ -88,6 +88,9 @@ const loadNotebooks = async () => {
   try {
     loading.value = true
     await notebookStore.getNotebooks()
+
+// console.log(res)
+
   } catch (error) {
     console.error('获取笔记本失败', error)
   } finally {
@@ -104,7 +107,6 @@ onMounted(() => {
   loadNotebooks();
 });
 
-// --- 下面的逻辑和你原来的一模一样，我保留了 Element Plus 的弹窗交互 ---
 
 const onCreate = async () => {
   try {
@@ -115,7 +117,7 @@ const onCreate = async () => {
       inputErrorMessage: '标题不能为空且不超过30个字符',
     })
     await notebookStore.addNotebook(value)
-    ElMessage.success('创建成功！') // 优化提示
+    // ElMessage.success('创建成功！') // 优化提示
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error('创建失败，请重试')
@@ -133,7 +135,7 @@ const onEdit = async (notebook) => {
       inputErrorMessage: '标题不能为空且不超过30个字符',
     })
     await notebookStore.updateNotebook(notebook.id, value)
-    ElMessage.success('修改成功！')
+    // ElMessage.success('修改成功！')
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error('修改失败，请重试')
@@ -153,7 +155,7 @@ const onDelete = async (notebook) => {
       }
     )
     await notebookStore.deleteNotebook(notebook.id)
-    ElMessage.success('删除成功')
+    // ElMessage.success('删除成功')
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
       ElMessage.error('删除失败，请重试')

@@ -86,7 +86,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/user'
 import { User, Lock } from '@element-plus/icons-vue'
 
 defineOptions({ name: 'Login' })
