@@ -12,7 +12,7 @@ const routes = [
     {
         path: '/',
         name: 'Home',
-        redirect: '/note'
+        redirect: '/notebooks'
     },
     {
         path: '/login',
@@ -50,31 +50,32 @@ const router = createRouter({
     routes,
 })
 //全局路由守卫 
-router.beforeEach(async (to, from, next) =>{
-
-    if (to.path === '/login') {
-        next()
-        return
-      }
-
+router.beforeEach(async (to, from, next) => {
     const userStore = useUserStore()
+    
     const isLogin = await userStore.checkAuth()
 
-    if(to.meta.requiresAuth && !isLogin){
-        next({
-            path: '/login',
-            query: { redirect: to.fullPath}
-        })
-        return
-         
+    if (to.path === '/login') {
+        if (isLogin) {
+            // A. 如果已登录，又想去登录页 -> 踢回首页
+            next('/') 
+        } else {
+            // B. 没登录，想去登录页 -> 放行
+            next() 
+        }
+    } else {
+        // C. 去其他页面
+        if (to.meta.requiresAuth && !isLogin) {
+            // 需要权限但没登录 -> 踢回登录页，并带上回跳地址
+            next({
+                path: '/login',
+                query: { redirect: to.fullPath }
+            })
+        } else {
+            // 其他情况（不需要权限，或者已登录） -> 放行
+            next()
+        }
     }
-     // 如果已登录还访问登录页，跳转到首页
-     if (to.path === '/login' && isLogin) {
-       next('/')
-       return
-     }
-    
-    next()
 })
 
 export default router
