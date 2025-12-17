@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
 // 只有最核心的组件（如首页、登录页）使用同步导入
@@ -38,16 +38,15 @@ const routes = [
         component: () => import('@/components/TrashDetail.vue'),
         meta: { requiresAuth: true }
     },
-    // 可以添加加载状态
-    // {
-    //     path: '/loading',
-    //     name: 'Loading',
-    //     component: () => import('@/components/LoadingState.vue')
-    // }
+    {
+        path: '/:pathMatch(.*)*', 
+        name: 'NotFound',
+        component: () => import('../components/NotFound.vue')
+    }
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory('/vue-cloud-notes/'),
     routes,
 })
 //全局路由守卫 

@@ -6,6 +6,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/vue-cloud-notes/',
   plugins: [
     vue(),
     // vueDevTools(),
